@@ -33,8 +33,7 @@ interface VSCodeAPI {
 
 declare function acquireVsCodeApi(): VSCodeAPI;
 
-const vscode =
-  typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : null;
+const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : null;
 
 interface ChatState {
   messages: Message[];
@@ -96,8 +95,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
     vscode?.postMessage({ type: 'setPersona', persona });
   },
 
-  addMessage: (message) =>
-    set((state) => ({ messages: [...state.messages, message] })),
+  addMessage: (message) => set((state) => ({ messages: [...state.messages, message] })),
 
   updateMessage: (id, content) =>
     set((state) => ({
@@ -106,9 +104,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   appendToMessage: (id, chunk) =>
     set((state) => ({
-      messages: state.messages.map((m) =>
-        m.id === id ? { ...m, content: m.content + chunk } : m,
-      ),
+      messages: state.messages.map((m) => (m.id === id ? { ...m, content: m.content + chunk } : m)),
     })),
 
   setIsStreaming: (isStreaming) => set({ isStreaming }),
