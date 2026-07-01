@@ -101,7 +101,7 @@ async function handleSendMessage(
     return;
   }
 
-  let activeConversation = conversationManager.getActive() || conversationManager.create();
+  const activeConversation = conversationManager.getActive() || conversationManager.create();
   conversationManager.addMessage(activeConversation.id, {
     role: 'user',
     content: message.content,
