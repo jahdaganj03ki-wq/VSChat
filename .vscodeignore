@@ -1,0 +1,16 @@
+.vscode/**
+.vscode-test/**
+.gitignore
+node_modules/**
+src/**
+tsconfig.json
+webpack.config.js
+.eslintrc.json
+.prettierrc
+tailwind.config.js
+postcss.config.js
+.github/**
+**/*.ts
+**/*.tsx
+**/*.map
+!dist/**

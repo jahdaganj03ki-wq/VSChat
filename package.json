@@ -1,0 +1,922 @@
+{
+  "name": "apex-agent",
+  "displayName": "ApexAgent",
+  "description": "Autonomous self-learning AI coding assistant with multi-provider, sub-agent orchestration, and auto-skill system",
+  "version": "0.1.0",
+  "publisher": "apex-agent",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Chat",
+    "Programming Languages",
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "chat",
+    "copilot",
+    "code",
+    "agent",
+    "multi-provider",
+    "self-learning"
+  ],
+  "icon": "icon.png",
+  "activationEvents": [
+    "onChat:apexAgent",
+    "onCommand:apex.chat.open",
+    "onCommand:apex.chat.toggle",
+    "onCommand:apex.mode.switch",
+    "onCommand:apex.settings.open",
+    "onCommand:apex.history.show",
+    "onCommand:apex.skills.show"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "apex.chat.open",
+        "title": "ApexAgent: Open Chat"
+      },
+      {
+        "command": "apex.chat.toggle",
+        "title": "ApexAgent: Toggle Chat Panel"
+      },
+      {
+        "command": "apex.mode.switch",
+        "title": "ApexAgent: Switch Mode (Plan/Code)"
+      },
+      {
+        "command": "apex.mode.custom",
+        "title": "ApexAgent: Create Custom Mode"
+      },
+      {
+        "command": "apex.settings.open",
+        "title": "ApexAgent: Open Settings"
+      },
+      {
+        "command": "apex.history.show",
+        "title": "ApexAgent: Show Conversation History"
+      },
+      {
+        "command": "apex.history.export",
+        "title": "ApexAgent: Export History"
+      },
+      {
+        "command": "apex.skills.show",
+        "title": "ApexAgent: Show Installed Skills"
+      },
+      {
+        "command": "apex.persona.switch",
+        "title": "ApexAgent: Switch Persona"
+      },
+      {
+        "command": "apex.learning.export",
+        "title": "ApexAgent: Export Knowledge Database"
+      },
+      {
+        "command": "apex.learning.reset",
+        "title": "ApexAgent: Reset Learned Knowledge"
+      },
+      {
+        "command": "apex.about",
+        "title": "ApexAgent: About"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "apex.chat.open",
+        "key": "ctrl+shift+a",
+        "when": "editorFocus"
+      },
+      {
+        "command": "apex.mode.switch",
+        "key": "ctrl+shift+m",
+        "when": "editorFocus"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "apex.chat.open",
+          "group": "apex"
+        }
+      ],
+      "editor/title/context": [
+        {
+          "command": "apex.chat.open",
+          "group": "apex"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "apex-sidebar",
+          "title": "ApexAgent",
+          "icon": "icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "apex-sidebar": [
+        {
+          "type": "tree",
+          "id": "apex-history",
+          "name": "Conversation History"
+        },
+        {
+          "type": "tree",
+          "id": "apex-skills",
+          "name": "Skills"
+        },
+        {
+          "type": "tree",
+          "id": "apex-subagents",
+          "name": "Sub-Agents"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ApexAgent",
+      "properties": {
+        "apex.chat.fontSize": {
+          "type": "number",
+          "default": 14,
+          "minimum": 8,
+          "maximum": 48,
+          "description": "Font size for chat messages"
+        },
+        "apex.chat.theme": {
+          "type": "string",
+          "default": "dark",
+          "enum": [
+            "dark",
+            "light",
+            "high-contrast",
+            "custom"
+          ],
+          "description": "Chat UI theme"
+        },
+        "apex.chat.showLineNumbers": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show line numbers in code blocks"
+        },
+        "apex.chat.autoScroll": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-scroll to new messages"
+        },
+        "apex.chat.enterToSend": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enter sends message (Ctrl+Enter for new line)"
+        },
+        "apex.modes.default": {
+          "type": "string",
+          "default": "plan",
+          "enum": [
+            "plan",
+            "code"
+          ],
+          "description": "Default mode on extension start"
+        },
+        "apex.modes.autoSwitch": {
+          "type": "boolean",
+          "default": false,
+          "description": "Auto-switch to code mode after plan creation"
+        },
+        "apex.modes.showConfirmation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show confirmation dialog before mode switch"
+        },
+        "apex.modes.custom": {
+          "type": "array",
+          "default": [],
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "prompt": {
+                "type": "string"
+              },
+              "tools": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "description": "Custom mode definitions"
+        },
+        "apex.modes.rememberLast": {
+          "type": "boolean",
+          "default": true,
+          "description": "Remember last active mode across sessions"
+        },
+        "apex.provider": {
+          "type": "string",
+          "default": "openai",
+          "enum": [
+            "openai",
+            "anthropic",
+            "ollama",
+            "azure-openai",
+            "google-gemini",
+            "github-copilot",
+            "openrouter",
+            "nvidia-nim",
+            "opencode-zen",
+            "puter-ai"
+          ],
+          "description": "Active LLM provider"
+        },
+        "apex.providers.openai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenAI API Key"
+        },
+        "apex.providers.openai.baseUrl": {
+          "type": "string",
+          "default": "https://api.openai.com/v1",
+          "description": "OpenAI Base URL"
+        },
+        "apex.providers.openai.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "OpenAI Model"
+        },
+        "apex.providers.openai.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "OpenAI Max Tokens"
+        },
+        "apex.providers.openai.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "OpenAI Temperature"
+        },
+        "apex.providers.openai.topP": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "OpenAI Top P"
+        },
+        "apex.providers.openai.contextWindow": {
+          "type": "number",
+          "default": 128000,
+          "description": "OpenAI Context Window"
+        },
+        "apex.providers.anthropic.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Anthropic API Key"
+        },
+        "apex.providers.anthropic.baseUrl": {
+          "type": "string",
+          "default": "https://api.anthropic.com/v1",
+          "description": "Anthropic Base URL"
+        },
+        "apex.providers.anthropic.model": {
+          "type": "string",
+          "default": "claude-3-5-sonnet-20241022",
+          "description": "Anthropic Model"
+        },
+        "apex.providers.anthropic.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Anthropic Max Tokens"
+        },
+        "apex.providers.anthropic.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Anthropic Temperature"
+        },
+        "apex.providers.anthropic.topP": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Anthropic Top P"
+        },
+        "apex.providers.anthropic.contextWindow": {
+          "type": "number",
+          "default": 200000,
+          "description": "Anthropic Context Window"
+        },
+        "apex.providers.ollama.baseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "Ollama Base URL"
+        },
+        "apex.providers.ollama.model": {
+          "type": "string",
+          "default": "llama3",
+          "description": "Ollama Model"
+        },
+        "apex.providers.ollama.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Ollama Max Tokens"
+        },
+        "apex.providers.ollama.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Ollama Temperature"
+        },
+        "apex.providers.ollama.contextWindow": {
+          "type": "number",
+          "default": 8192,
+          "description": "Ollama Context Window"
+        },
+        "apex.providers.azure-openai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Azure OpenAI API Key"
+        },
+        "apex.providers.azure-openai.baseUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Azure OpenAI Endpoint"
+        },
+        "apex.providers.azure-openai.deploymentName": {
+          "type": "string",
+          "default": "",
+          "description": "Azure OpenAI Deployment Name"
+        },
+        "apex.providers.azure-openai.model": {
+          "type": "string",
+          "default": "gpt-4o",
+          "description": "Azure OpenAI Model"
+        },
+        "apex.providers.azure-openai.apiVersion": {
+          "type": "string",
+          "default": "2024-10-01-preview",
+          "description": "Azure OpenAI API Version"
+        },
+        "apex.providers.azure-openai.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Azure OpenAI Max Tokens"
+        },
+        "apex.providers.azure-openai.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Azure OpenAI Temperature"
+        },
+        "apex.providers.azure-openai.contextWindow": {
+          "type": "number",
+          "default": 128000,
+          "description": "Azure OpenAI Context Window"
+        },
+        "apex.providers.google-gemini.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Google Gemini API Key"
+        },
+        "apex.providers.google-gemini.model": {
+          "type": "string",
+          "default": "gemini-1.5-pro",
+          "description": "Google Gemini Model"
+        },
+        "apex.providers.google-gemini.maxTokens": {
+          "type": "number",
+          "default": 8192,
+          "description": "Google Gemini Max Tokens"
+        },
+        "apex.providers.google-gemini.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "Google Gemini Temperature"
+        },
+        "apex.providers.google-gemini.topP": {
+          "type": "number",
+          "default": 0.95,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Google Gemini Top P"
+        },
+        "apex.providers.google-gemini.contextWindow": {
+          "type": "number",
+          "default": 1048576,
+          "description": "Google Gemini Context Window"
+        },
+        "apex.providers.github-copilot.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "GitHub Copilot Token"
+        },
+        "apex.providers.github-copilot.model": {
+          "type": "string",
+          "default": "gpt-4o-copilot",
+          "description": "GitHub Copilot Model"
+        },
+        "apex.providers.github-copilot.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "GitHub Copilot Max Tokens"
+        },
+        "apex.providers.github-copilot.contextWindow": {
+          "type": "number",
+          "default": 128000,
+          "description": "GitHub Copilot Context Window"
+        },
+        "apex.providers.openrouter.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenRouter API Key"
+        },
+        "apex.providers.openrouter.baseUrl": {
+          "type": "string",
+          "default": "https://openrouter.ai/api/v1",
+          "description": "OpenRouter Base URL"
+        },
+        "apex.providers.openrouter.model": {
+          "type": "string",
+          "default": "openai/gpt-4o",
+          "description": "OpenRouter Model"
+        },
+        "apex.providers.openrouter.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "OpenRouter Max Tokens"
+        },
+        "apex.providers.openrouter.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "OpenRouter Temperature"
+        },
+        "apex.providers.openrouter.topP": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "OpenRouter Top P"
+        },
+        "apex.providers.openrouter.contextWindow": {
+          "type": "number",
+          "default": 128000,
+          "description": "OpenRouter Context Window"
+        },
+        "apex.providers.nvidia-nim.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "NVIDIA NIM API Key"
+        },
+        "apex.providers.nvidia-nim.baseUrl": {
+          "type": "string",
+          "default": "https://nim.ngc.nvidia.com",
+          "description": "NVIDIA NIM Base URL"
+        },
+        "apex.providers.nvidia-nim.model": {
+          "type": "string",
+          "default": "nvidia/llama-3.1-nemotron-70b-instruct",
+          "description": "NVIDIA NIM Model"
+        },
+        "apex.providers.nvidia-nim.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "NVIDIA NIM Max Tokens"
+        },
+        "apex.providers.nvidia-nim.temperature": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 2,
+          "description": "NVIDIA NIM Temperature"
+        },
+        "apex.providers.nvidia-nim.contextWindow": {
+          "type": "number",
+          "default": 128000,
+          "description": "NVIDIA NIM Context Window"
+        },
+        "apex.providers.opencode-zen.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "OpenCode Zen API Key"
+        },
+        "apex.providers.opencode-zen.baseUrl": {
+          "type": "string",
+          "default": "https://api.opencode.ai/v1",
+          "description": "OpenCode Zen Base URL"
+        },
+        "apex.providers.opencode-zen.model": {
+          "type": "string",
+          "default": "zen-1.0",
+          "description": "OpenCode Zen Model"
+        },
+        "apex.providers.opencode-zen.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "OpenCode Zen Max Tokens"
+        },
+        "apex.providers.opencode-zen.contextWindow": {
+          "type": "number",
+          "default": 128000,
+          "description": "OpenCode Zen Context Window"
+        },
+        "apex.providers.puter-ai.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "Puter AI API Key"
+        },
+        "apex.providers.puter-ai.baseUrl": {
+          "type": "string",
+          "default": "https://api.puter.com/v1",
+          "description": "Puter AI Base URL"
+        },
+        "apex.providers.puter-ai.model": {
+          "type": "string",
+          "default": "puter-gpt-4o",
+          "description": "Puter AI Model"
+        },
+        "apex.providers.puter-ai.maxTokens": {
+          "type": "number",
+          "default": 4096,
+          "description": "Puter AI Max Tokens"
+        },
+        "apex.providers.puter-ai.contextWindow": {
+          "type": "number",
+          "default": 128000,
+          "description": "Puter AI Context Window"
+        },
+        "apex.agentic.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable agentic mode (tool execution)"
+        },
+        "apex.agentic.maxRequests": {
+          "type": "number",
+          "default": 25,
+          "description": "Maximum tool requests per task"
+        },
+        "apex.agentic.timeout": {
+          "type": "number",
+          "default": 300,
+          "description": "Tool execution timeout in seconds"
+        },
+        "apex.agentic.shellPath": {
+          "type": "string",
+          "default": "",
+          "description": "Shell path (empty = auto-detect)"
+        },
+        "apex.agentic.tools.fileRead": {
+          "type": "string",
+          "default": "allow",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for File Read tool"
+        },
+        "apex.agentic.tools.fileWrite": {
+          "type": "string",
+          "default": "ask",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for File Write tool"
+        },
+        "apex.agentic.tools.fileEdit": {
+          "type": "string",
+          "default": "ask",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for File Edit tool"
+        },
+        "apex.agentic.tools.fileSearch": {
+          "type": "string",
+          "default": "allow",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for File Search tool"
+        },
+        "apex.agentic.tools.terminalExec": {
+          "type": "string",
+          "default": "ask",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for Terminal Execute tool"
+        },
+        "apex.agentic.tools.codeSearch": {
+          "type": "string",
+          "default": "allow",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for Code Search tool"
+        },
+        "apex.agentic.tools.webSearch": {
+          "type": "string",
+          "default": "ask",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for Web Search tool"
+        },
+        "apex.agentic.tools.webFetch": {
+          "type": "string",
+          "default": "ask",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for Web Fetch tool"
+        },
+        "apex.agentic.tools.globSearch": {
+          "type": "string",
+          "default": "allow",
+          "enum": [
+            "allow",
+            "ask",
+            "deny"
+          ],
+          "description": "Permission for Glob Search tool"
+        },
+        "apex.learning.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable autonomous learning system"
+        },
+        "apex.learning.autoDetectPatterns": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-detect error patterns"
+        },
+        "apex.learning.learnFromEdits": {
+          "type": "boolean",
+          "default": true,
+          "description": "Learn from user edits to generated code"
+        },
+        "apex.learning.maxStoredRules": {
+          "type": "number",
+          "default": 1000,
+          "description": "Maximum stored learning rules"
+        },
+        "apex.learning.confidenceThreshold": {
+          "type": "number",
+          "default": 0.7,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Minimum confidence for rule application"
+        },
+        "apex.learning.exportPath": {
+          "type": "string",
+          "default": "",
+          "description": "Export path for knowledge database"
+        },
+        "apex.subAgents.maxConcurrent": {
+          "type": "number",
+          "default": 3,
+          "description": "Maximum concurrent sub-agents"
+        },
+        "apex.subAgents.defaultModel": {
+          "type": "string",
+          "default": "",
+          "description": "Default model for sub-agents (empty = inherit main agent)"
+        },
+        "apex.subAgents.timeout": {
+          "type": "number",
+          "default": 120,
+          "description": "Timeout per sub-agent in seconds"
+        },
+        "apex.skills.autoInstall": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-install skills on prompt match"
+        },
+        "apex.skills.autoImprove": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-suggest skill improvements"
+        },
+        "apex.skills.maxActive": {
+          "type": "number",
+          "default": 5,
+          "description": "Maximum simultaneously active skills"
+        },
+        "apex.skills.github.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable GitHub as skill source"
+        },
+        "apex.skills.github.registryUrl": {
+          "type": "string",
+          "default": "apex-skills/registry",
+          "description": "GitHub skill registry repo"
+        },
+        "apex.skills.github.autoDiscover": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-discover skills via GitHub topics"
+        },
+        "apex.skills.github.searchTopics": {
+          "type": "array",
+          "default": [
+            "apex-skill",
+            "claude-command",
+            "codex-agent",
+            "cursor-rule"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "description": "GitHub topics for skill discovery"
+        },
+        "apex.skills.github.token": {
+          "type": "string",
+          "default": "",
+          "description": "GitHub token for API rate limits"
+        },
+        "apex.skills.marketplaceUrl": {
+          "type": "string",
+          "default": "",
+          "description": "Optional skill marketplace URL"
+        },
+        "apex.skills.improvementMode": {
+          "type": "string",
+          "default": "diff-review",
+          "enum": [
+            "auto-apply",
+            "diff-review",
+            "off"
+          ],
+          "description": "Skill improvement mode"
+        },
+        "apex.skills.localPath": {
+          "type": "string",
+          "default": "",
+          "description": "Local skill folder path"
+        },
+        "apex.skills.sources.codex": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Codex CLI skill import"
+        },
+        "apex.skills.sources.claude": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable Claude Code skill import"
+        },
+        "apex.skills.sources.zcode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable ZCode skill import"
+        },
+        "apex.skills.sources.codexPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to .codex/ directory"
+        },
+        "apex.skills.sources.claudePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to .claude/ directory"
+        },
+        "apex.skills.sources.zcodePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to .zcode/ directory"
+        },
+        "apex.skills.sourceMode": {
+          "type": "string",
+          "default": "both",
+          "enum": [
+            "import",
+            "live-adapter",
+            "both"
+          ],
+          "description": "Skill source mode"
+        },
+        "apex.advanced.customInstructions": {
+          "type": "string",
+          "default": "",
+          "description": "Global custom instructions"
+        },
+        "apex.advanced.autoSummarize": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-summarize on context overflow"
+        },
+        "apex.advanced.language": {
+          "type": "string",
+          "default": "en",
+          "enum": [
+            "en",
+            "de",
+            "fr",
+            "es",
+            "ja",
+            "zh",
+            "pt"
+          ],
+          "description": "UI language"
+        },
+        "apex.advanced.sounds": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable sounds on response"
+        },
+        "apex.advanced.debugMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable debug logging"
+        }
+      }
+    }
+  },
+  "main": "./dist/extension.js",
+  "browser": "./dist/webview.js",
+  "scripts": {
+    "build": "webpack --mode production",
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,json}\"",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "vsce package",
+    "vscode:prepublish": "webpack --mode production"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0",
+    "diff": "^5.2.0",
+    "glob": "^13.0.6",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-markdown": "^9.0.1",
+    "rehype-highlight": "^7.0.0",
+    "zod": "^3.23.0",
+    "zustand": "^4.5.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/diff": "^5.2.0",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^8.62.1",
+    "@typescript-eslint/parser": "^8.62.1",
+    "@vscode/vsce": "^2.26.0",
+    "autoprefixer": "^10.4.19",
+    "css-loader": "^7.0.0",
+    "css-minimizer-webpack-plugin": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react": "^7.34.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "mini-css-extract-plugin": "^2.9.0",
+    "postcss": "^8.4.38",
+    "postcss-loader": "^8.1.0",
+    "prettier": "^3.2.0",
+    "style-loader": "^4.0.0",
+    "tailwindcss": "^3.4.0",
+    "ts-loader": "^9.5.0",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.5.0",
+    "vitest": "^1.6.0",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.0"
+  },
+  "allowScripts": {
+    "better-sqlite3": true
+  }
+}
