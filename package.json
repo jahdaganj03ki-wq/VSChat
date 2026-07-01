@@ -27,6 +27,7 @@
     "multi-provider",
     "self-learning"
   ],
+  "icon": "icon.png",
   "activationEvents": [
     "onChat:apexAgent",
     "onCommand:apex.chat.open",
