@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { Commands } from './commands';
 import { StatusBarManager } from './statusBar';
-import { TreeViewProvider } from './treeView';
 import { SettingsManager } from '../config/SettingsManager';
 import { Database } from '../storage/Database';
 import { ProviderRegistry } from '../core/llm/ProviderRegistry';
@@ -23,9 +22,6 @@ export function activate(context: vscode.ExtensionContext): void {
 
   const statusBar = new StatusBarManager(settingsManager);
   statusBar.register(context);
-
-  const treeViewProvider = new TreeViewProvider();
-  vscode.window.registerTreeDataProvider('apex-history', treeViewProvider);
 
   const providerRegistry = new ProviderRegistry();
   const chatEngine = new ChatEngine();

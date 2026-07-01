@@ -126,19 +126,9 @@
     "views": {
       "apex-sidebar": [
         {
-          "type": "tree",
-          "id": "apex-history",
-          "name": "Conversation History"
-        },
-        {
-          "type": "tree",
-          "id": "apex-skills",
-          "name": "Skills"
-        },
-        {
-          "type": "tree",
-          "id": "apex-subagents",
-          "name": "Sub-Agents"
+          "type": "webview",
+          "id": "apex-chat",
+          "name": "ApexAgent"
         }
       ]
     },
