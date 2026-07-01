@@ -5,6 +5,10 @@
   "version": "0.1.0",
   "publisher": "apex-agent",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jahdaganj03ki-wq/VSChat.git"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
@@ -23,7 +27,6 @@
     "multi-provider",
     "self-learning"
   ],
-  "icon": "icon.png",
   "activationEvents": [
     "onChat:apexAgent",
     "onCommand:apex.chat.open",
