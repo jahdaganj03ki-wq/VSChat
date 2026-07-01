@@ -1,17 +1,13 @@
 import React from 'react';
+import { useChatStore } from '../hooks/useChatStore';
 
-interface HistoryEntry {
-  id: string;
-  title: string;
-  date: Date;
-  messageCount: number;
-}
-
-export function HistoryPanel(): React.ReactElement {
-  const [entries] = React.useState<HistoryEntry[]>([]);
+export function HistoryPanel() {
+  const conversations = useChatStore((s) => s.conversations);
   const [search, setSearch] = React.useState('');
 
-  const filtered = entries.filter((e) => e.title.toLowerCase().includes(search.toLowerCase()));
+  const filtered = conversations.filter((c) =>
+    c.title.toLowerCase().includes(search.toLowerCase()),
+  );
 
   return (
     <div style={{ padding: '8px 12px', overflowY: 'auto', height: '100%' }}>
@@ -41,15 +37,15 @@ export function HistoryPanel(): React.ReactElement {
             marginTop: 24,
           }}
         >
-          {entries.length === 0
+          {conversations.length === 0
             ? 'No conversations yet. Start chatting!'
             : 'No conversations match your search.'}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {filtered.map((entry) => (
+          {filtered.map((conv) => (
             <div
-              key={entry.id}
+              key={conv.id}
               style={{
                 padding: '8px 12px',
                 borderRadius: 4,
@@ -63,7 +59,7 @@ export function HistoryPanel(): React.ReactElement {
                 e.currentTarget.style.borderColor = 'transparent';
               }}
             >
-              <div style={{ fontSize: 12, fontWeight: 500 }}>{entry.title}</div>
+              <div style={{ fontSize: 12, fontWeight: 500 }}>{conv.title}</div>
               <div
                 style={{
                   fontSize: 10,
@@ -71,7 +67,7 @@ export function HistoryPanel(): React.ReactElement {
                   marginTop: 2,
                 }}
               >
-                {entry.date.toLocaleDateString()} - {entry.messageCount} messages
+                {new Date(conv.updatedAt).toLocaleDateString()} - {conv.messages.length} messages
               </div>
             </div>
           ))}

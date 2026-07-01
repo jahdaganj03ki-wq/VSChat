@@ -1,25 +1,19 @@
 import React from 'react';
+import { useChatStore, type View } from './hooks/useChatStore';
 import { ChatPanel } from './components/ChatPanel';
 import { SettingsPanel } from './components/SettingsPanel';
 import { HistoryPanel } from './components/HistoryPanel';
 import { SubAgentView } from './components/SubAgentView';
 
-type View = 'chat' | 'settings' | 'history' | 'subagents';
-
-export function App(): React.ReactElement {
-  const [currentView, setCurrentView] = React.useState<View>('chat');
-  const [mode, setMode] = React.useState<'plan' | 'code'>('plan');
+export function App() {
+  const mode = useChatStore((s) => s.mode);
+  const currentView = useChatStore((s) => s.currentView);
+  const setCurrentView = useChatStore((s) => s.setCurrentView);
+  const loadHistory = useChatStore((s) => s.loadHistory);
 
   React.useEffect(() => {
-    const handler = (event: MessageEvent) => {
-      const message = event.data;
-      if (message.type === 'modeChanged') {
-        setMode(message.mode);
-      }
-    };
-    window.addEventListener('message', handler);
-    return () => window.removeEventListener('message', handler);
-  }, []);
+    loadHistory();
+  }, [loadHistory]);
 
   const viewStyle: React.CSSProperties = {
     borderTop: `3px solid ${mode === 'plan' ? '#3b82f6' : '#22c55e'}`,
@@ -78,7 +72,7 @@ export function App(): React.ReactElement {
         </nav>
       </header>
       <main style={{ flex: 1, overflow: 'hidden' }}>
-        {currentView === 'chat' && <ChatPanel mode={mode} />}
+        {currentView === 'chat' && <ChatPanel />}
         {currentView === 'settings' && <SettingsPanel />}
         {currentView === 'history' && <HistoryPanel />}
         {currentView === 'subagents' && <SubAgentView />}

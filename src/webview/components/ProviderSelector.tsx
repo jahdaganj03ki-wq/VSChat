@@ -1,8 +1,4 @@
-import React from 'react';
-
-interface ProviderSelectorProps {
-  mode: 'plan' | 'code';
-}
+import { useChatStore } from '../hooks/useChatStore';
 
 const PROVIDERS = [
   { id: 'openai', label: 'OpenAI' },
@@ -17,8 +13,10 @@ const PROVIDERS = [
   { id: 'puter-ai', label: 'Puter AI' },
 ] as const;
 
-export function ProviderSelector({ mode }: ProviderSelectorProps): React.ReactElement {
-  const [selected, setSelected] = React.useState('openai');
+export function ProviderSelector() {
+  const mode = useChatStore((s) => s.mode);
+  const selectedProvider = useChatStore((s) => s.selectedProvider);
+  const setSelectedProvider = useChatStore((s) => s.setSelectedProvider);
 
   return (
     <div
@@ -35,8 +33,8 @@ export function ProviderSelector({ mode }: ProviderSelectorProps): React.ReactEl
         Provider:
       </span>
       <select
-        value={selected}
-        onChange={(e) => setSelected(e.target.value)}
+        value={selectedProvider}
+        onChange={(e) => setSelectedProvider(e.target.value)}
         style={{
           flex: 1,
           padding: '2px 6px',

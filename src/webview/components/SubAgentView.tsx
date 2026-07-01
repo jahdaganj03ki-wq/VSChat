@@ -1,22 +1,14 @@
-import React from 'react';
+import { useChatStore } from '../hooks/useChatStore';
 
-interface SubAgent {
-  id: string;
-  name: string;
-  status: 'running' | 'completed' | 'failed' | 'pending';
-  task: string;
-  progress: number;
-}
+const STATUS_COLORS: Record<string, string> = {
+  running: '#22c55e',
+  completed: '#3b82f6',
+  failed: '#ef4444',
+  pending: '#6b7280',
+};
 
-export function SubAgentView(): React.ReactElement {
-  const [agents] = React.useState<SubAgent[]>([]);
-
-  const statusColors: Record<string, string> = {
-    running: '#22c55e',
-    completed: '#3b82f6',
-    failed: '#ef4444',
-    pending: '#6b7280',
-  };
+export function SubAgentView() {
+  const agents = useChatStore((s) => s.subAgents);
 
   return (
     <div style={{ padding: '8px 12px', overflowY: 'auto', height: '100%' }}>
@@ -56,7 +48,7 @@ export function SubAgentView(): React.ReactElement {
                   style={{
                     fontSize: 10,
                     fontWeight: 600,
-                    color: statusColors[agent.status],
+                    color: STATUS_COLORS[agent.status],
                     textTransform: 'uppercase',
                   }}
                 >

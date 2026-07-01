@@ -1,8 +1,4 @@
-import React from 'react';
-
-interface PersonaSelectorProps {
-  onSelect: (persona: string) => void;
-}
+import { useChatStore } from '../hooks/useChatStore';
 
 const PERSONAS = [
   { id: 'expert-developer', label: 'Expert Developer', description: 'Clean code + best practices' },
@@ -13,19 +9,14 @@ const PERSONAS = [
   { id: 'custom', label: 'Custom', description: 'Free-form system prompt' },
 ] as const;
 
-export function PersonaSelector({ onSelect }: PersonaSelectorProps): React.ReactElement {
-  const [selected, setSelected] = React.useState('expert-developer');
-
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    setSelected(value);
-    onSelect(value);
-  };
+export function PersonaSelector() {
+  const persona = useChatStore((s) => s.persona);
+  const setPersona = useChatStore((s) => s.setPersona);
 
   return (
     <select
-      value={selected}
-      onChange={handleChange}
+      value={persona}
+      onChange={(e) => setPersona(e.target.value)}
       style={{
         padding: '2px 6px',
         borderRadius: 3,
