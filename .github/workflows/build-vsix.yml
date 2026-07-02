@@ -1,0 +1,39 @@
+name: Build VSIX
+
+on:
+  push:
+    branches: [main, feature/*]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: ./.github/actions/setup-bun
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Build CLI binary
+        run: bun run build --single
+        working-directory: packages/opencode
+
+      - name: Build VSIX
+        run: bun script/build.ts
+        working-directory: packages/kilo-vscode
+        env:
+          CLI_DIST_DIR: ../../packages/opencode/dist
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: kilo-code-auto-memory-vsix
+          path: packages/kilo-vscode/out/*.vsix
