@@ -28,21 +28,24 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Rebuild SDK
-        run: bun run rebuild-sdk
-        working-directory: packages/kilo-vscode
+      - name: Setup Zig for sandbox helpers
+        run: |
+          curl --fail --location --retry 3 \
+            https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.14.0.tar.xz \
+            --output "$RUNNER_TEMP/zig.tar.xz"
+          echo "473ec26806133cf4d1918caf1a410f8403a13d979726a9045b421b685031a982  $RUNNER_TEMP/zig.tar.xz" | sha256sum --check --status
+          tar -xJf "$RUNNER_TEMP/zig.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/zig-linux-x86_64-0.14.0" >> "$GITHUB_PATH"
 
       - name: Build CLI binary
-        run: bun run prepare:cli-binary
-        working-directory: packages/kilo-vscode
+        run: bun run build --single
+        working-directory: packages/opencode
 
-      - name: Build extension
-        run: node esbuild.js --production
+      - name: Build VSIX
+        run: bun script/build.ts
         working-directory: packages/kilo-vscode
-
-      - name: Package VSIX
-        run: npx @vscode/vsce package --no-dependencies --skip-license -o out/kilo-code-auto-memory.vsix
-        working-directory: packages/kilo-vscode
+        env:
+          CLI_DIST_DIR: ../../packages/opencode/dist
 
       - uses: actions/upload-artifact@v7
         with:
